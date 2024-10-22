@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Snake Game</title>
+    <style>
+      body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+      canvas { border: 1px solid black; }
+    </style>
+  </head>
+  <body>
+    <canvas id="snake-canvas" width="600" height="600"></canvas>
+    <script type="module">
+      import init, { SnakeGame, Direction } from './pkg/snake_game.js';
+
+      async function run() {
+        await init();
+        
+        const CELL_SIZE = 15;
+        const WORLD_WIDTH = 40;
+        const WORLD_HEIGHT = 40;
+        
+        const canvas = document.getElementById('snake-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const game = SnakeGame.new(WORLD_WIDTH, WORLD_HEIGHT);
+
+        document.addEventListener('keydown', (e) => {
+          switch (e.key) {
+            case 'ArrowUp': game.change_direction(Direction.Up); break;
+            case 'ArrowRight': game.change_direction(Direction.Right); break;
+            case 'ArrowDown': game.change_direction(Direction.Down); break;
+            case 'ArrowLeft': game.change_direction(Direction.Left); break;
+          }
+        });
+
+        function drawGame() {
+          ctx.beginPath();
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "#00FF00";
+          const snakeCells = game.snake_cells();
+          for (let idx = 0; idx < snakeCells.length; idx++) {
+            const col = snakeCells[idx] % WORLD_WIDTH;
+            const row = Math.floor(snakeCells[idx] / WORLD_WIDTH);
+            ctx.fillRect(
+              col * CELL_SIZE,
+              row * CELL_SIZE,
+              CELL_SIZE,
+              CELL_SIZE
+            );
+          }
+
+          ctx.fillStyle = "#FF0000";
+          ctx.fillRect(
+            game.food_x() * CELL_SIZE,
+            game.food_y() * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE
+          );
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "20px Arial";
+          ctx.fillText(`Score: ${game.snake_length() - 1}`, 10, 30);
+        }
+
+        function gameLoop() {
+          game.step();
+          drawGame();
+
+          if (game.game_over()) {
+            alert(`Game Over! Your score is ${game.snake_length() - 1}`);
+            game = SnakeGame.new(WORLD_WIDTH, WORLD_HEIGHT);
+          } else {
+            setTimeout(gameLoop, 100); // Adjust speed here
+          }
+        }
+
+        gameLoop();
+      }
+
+      run();
+    </script>
+  </body>
+</html>
